@@ -1,0 +1,220 @@
+buildscript {
+    repositories {
+        maven { url = 'https://maven.minecraftforge.net' }
+        mavenCentral()
+    }
+    dependencies {
+        classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '4.1.+', changing: true
+    }
+}
+apply plugin: 'net.minecraftforge.gradle'
+apply plugin: 'eclipse'
+apply plugin: 'maven-publish'
+
+archivesBaseName = project.archivesBaseName
+
+def versionInfo = getModVersion()
+System.out.println(versionInfo)
+version = "${versionInfo['version']}"
+
+sourceCompatibility = targetCompatibility = compileJava.sourceCompatibility = compileJava.targetCompatibility = '1.8'
+
+minecraft {
+    // mappings channel: 'official', version: '1.16.5'
+    mappings channel: "${project.mcp_channel}", version: "${project.mcp_mappings}"
+    // makeObfSourceJar = false // an Srg named sources jar is made by default. uncomment this to disable.
+    
+    // accessTransformer = file('src/main/resources/META-INF/accesstransformer.cfg')
+
+    runs {
+        client {
+            workingDirectory project.file('run')
+            property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'
+            property 'forge.logging.console.level', 'debug'
+
+            mods {
+                card_collections {
+                    source sourceSets.main
+                }
+            }
+        }
+
+        server {
+            workingDirectory project.file('run')
+            property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'
+            property 'forge.logging.console.level', 'debug'
+            mods {
+                card_collections {
+                    source sourceSets.main
+                }
+            }
+        }
+
+        data {
+            workingDirectory project.file('run')
+            property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'
+            property 'forge.logging.console.level', 'debug'
+            args '--mod', project.mod_id, '--all',
+                    '--existing', file('src/main/resources/'),
+                    '--existing', file('src/generated/resources/'),
+                    '--output', file('src/generated/resources/')
+            mods {
+                card_collections {
+                    source sourceSets.main
+                }
+            }
+        }
+    }
+}
+
+sourceSets.main.resources { srcDir 'src/generated/resources' }
+
+dependencies {
+    minecraft "net.minecraftforge:forge:${project.mc_version}-${project.forge_version}"
+
+    // You may put jars on which you depend on in ./libs or you may define them like so..
+    // compile "some.group:artifact:version:classifier"
+    // compile "some.group:artifact:version"
+
+    // Real examples
+    // compile 'com.mod-buildcraft:buildcraft:6.0.8:dev'  // adds buildcraft to the dev env
+    // compile 'com.googlecode.efficient-java-matrix-library:ejml:0.24' // adds ejml to the dev env
+
+    // The 'provided' configuration is for optional dependencies that exist at compile-time but might not at runtime.
+    // provided 'com.mod-buildcraft:buildcraft:6.0.8:dev'
+
+    // These dependencies get remapped to your current MCP mappings
+    // deobf 'com.mod-buildcraft:buildcraft:6.0.8:dev'
+
+    // For more info...
+    // http://www.gradle.org/docs/current/userguide/artifact_dependencies_tutorial.html
+    // http://www.gradle.org/docs/current/userguide/dependency_management.html
+
+}
+
+// Example for how to get properties into the manifest for reading by the runtime..
+jar {
+    manifest {
+        attributes([
+            "Specification-Title": project.mod_id,
+            "Specification-Vendor": "skydarkchen",
+            "Specification-Version": "1", // We are version 1 of ourselves
+            "Implementation-Title": project.name,
+            "Implementation-Version": project.version,  // "${versionInfo['version']}",
+            "Implementation-Vendor" :"skydarkchen",
+            "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
+        ])
+    }
+}
+
+// Example configuration to allow publishing using the maven-publish task
+// This is the preferred method to reobfuscate your jar file
+jar.finalizedBy('reobfJar') 
+// However if you are in a multi-project build, dev time needs unobfed jar files, so you can delay the obfuscation until publishing by doing
+//publish.dependsOn('reobfJar')
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            artifact jar
+        }
+    }
+    repositories {
+        maven {
+            url "file:///${project.projectDir}/mcmodsrepo"
+        }
+    }
+}
+
+// Version stuff
+
+def getModVersion() {
+    try {
+        return getGitVersion()
+    } catch (Exception ex) {
+        System.out.println("Git version failed, falling back to gradle.properties")
+        try {
+            def hash = getGitHash()
+            return makeVersionMap(project.build_version + '-' + getGitHash())
+        } catch (Exception ex2) {
+            System.out.println("Git hash failed, falling back to gradle.properties")
+            return makeVersionMap(project.build_version + '-FFFFFF')
+        }
+    }
+}
+
+def getGitVersion() {
+    // Call git command
+    def outStream = new ByteArrayOutputStream()
+    def result = exec {
+        executable = 'git'
+        args = ['describe', '--long']
+        standardOutput = outStream
+    }
+
+    def fullVersion = outStream.toString()
+    return makeVersionMap(fullVersion)
+}
+
+def getGitHash() {
+    def outStream = new ByteArrayOutputStream()
+    def result = exec {
+        executable = 'git'
+        args = ['rev-parse', 'HEAD']
+        standardOutput = outStream
+    }
+
+    return outStream.toString().trim().substring(0, 6)
+}
+
+def makeVersionMap(version) {
+    def matcher = version.trim() =~ /(\d+).(\d+).(\d+)-(.*)/
+
+    def maj = matcher[0][1]
+    def min = matcher[0][2]
+    def rev = matcher[0][3]
+    def bn = getBuildNumber()
+
+    return makeVersionMap(maj, min, rev, bn, matcher[0][4])
+}
+
+def makeVersionMap(maj, min, rev, bn, githash) {
+    def out = [:]
+    out['build.major.number'] = maj.toString()
+    out['build.minor.number'] = min.toString()
+    out['build.revision.number'] = rev.toString()
+    out['build.githash'] = githash
+    out['build.number'] = bn.toString()
+    out['version_short'] = "${maj}.${min}.${rev}".toString()
+    out['version'] = "${project.mc_version}-${maj}.${min}.${rev}".toString()
+    return out
+}
+
+// Build number tracking
+
+String getBuildNumber() {
+    def versionFile = file('version.properties')
+    if (versionFile.canRead()) {
+        Properties versionProps = new Properties()
+        versionProps.load(new FileInputStream(versionFile))
+        return versionProps['build_num'].toString()
+    }
+    return "1"
+}
+
+task incrementBuild {
+    doFirst {
+        def versionFile = file('version.properties')
+        if (versionFile.canRead()) {
+            Properties versionProps = new Properties()
+            versionProps.load(new FileInputStream(versionFile))
+            def num = versionProps['build_num'].toInteger() + 1
+            println("incrementing BuildNumber to: " + num)
+            versionProps['build_num'] = num.toString()
+            versionProps.store(versionFile.newWriter(), null)
+        } else {
+            println("version.properties file not found! Ignoring.")
+        }
+    }
+}
+build.finalizedBy incrementBuild // only increment on successful builds

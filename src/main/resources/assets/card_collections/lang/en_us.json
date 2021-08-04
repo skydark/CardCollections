@@ -1,0 +1,21 @@
+{
+  "itemGroup.card_collections": "Card Collections",
+  "item.card_collections.card": "Card",
+  "item.card_collections.gacha": "Gacha",
+  "item.card_collections.collection_book": "Collection Book",
+  "chat.card_collections.collection_book.consumed": "Consumed %d card(s)",
+  "chat.card_collections.gacha.invalid": "Failed to construct card, invalid gacha",
+  "chat.card_collections.not_implemented": "Not implemented yet",
+  "tooltip.card_collections.card": "Right click to examine, sneaking to show more",
+  "tooltip.card_collections.card.invalid": "Invalid card",
+  "tooltip.card_collections.collection_book": "Right click to show gui, sneak right click to collect cards in inventory",
+  "tooltip.card_collections.collection_book.invalid": "Invalid collection book",
+  "tooltip.card_collections.gacha": "Right click to get a random card, sneak right click to get collection book",
+  "gui.card_collections.button.pop": "Pop",
+  "gui.card_collections.text.name": "Name",
+  "gui.card_collections.text.no_name": "X",
+  "gui.card_collections.text.no_active_card": "No card selected",
+  "chat.card_collections.gacha.get": "Get card: ",
+  "chat.card_collections.gacha.no_gacha_to_book": "Not allowed to convert gacha to collection book, disabled in config.",
+  "tooltip.card_collections.gacha.invalid": "Invalid gacha"
+}

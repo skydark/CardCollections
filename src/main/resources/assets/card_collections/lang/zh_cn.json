@@ -1,0 +1,21 @@
+{
+  "itemGroup.card_collections": "卡牌收集",
+  "item.card_collections.card": "卡牌",
+  "item.card_collections.gacha": "抽卡",
+  "item.card_collections.collection_book": "集卡册",
+  "chat.card_collections.collection_book.consumed": "收录 %d 张卡牌",
+  "chat.card_collections.gacha.invalid": "无法构建卡牌，无效的抽卡",
+  "chat.card_collections.not_implemented": "尚未实现",
+  "tooltip.card_collections.card": "右键检视卡牌，潜行查看详情",
+  "tooltip.card_collections.card.invalid": "无效卡牌",
+  "tooltip.card_collections.collection_book": "右键显示界面，潜行右键收集物品栏卡牌",
+  "tooltip.card_collections.collection_book.invalid": "无效集卡册",
+  "tooltip.card_collections.gacha": "右键获得随机卡牌，潜行右键可同时获得相应的集卡册",
+  "gui.card_collections.button.pop": "弹出",
+  "gui.card_collections.text.name": "名称",
+  "gui.card_collections.text.no_name": "X",
+  "gui.card_collections.text.no_active_card": "未选择卡牌",
+  "chat.card_collections.gacha.get": "获得卡牌：",
+  "chat.card_collections.gacha.no_gacha_to_book": "已在配置中禁止将抽卡转换为集卡册",
+  "tooltip.card_collections.gacha.invalid": "无效抽卡"
+}
