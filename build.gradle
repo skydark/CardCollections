@@ -7,6 +7,10 @@ buildscript {
         classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '4.1.+', changing: true
     }
 }
+plugins {
+    id 'com.matthewprenger.cursegradle' version '1.4.0'
+}
+
 apply plugin: 'net.minecraftforge.gradle'
 apply plugin: 'eclipse'
 apply plugin: 'maven-publish'
@@ -218,3 +222,18 @@ task incrementBuild {
     }
 }
 build.finalizedBy incrementBuild // only increment on successful builds
+
+curseforge {
+    apiKey = file('curseforge_api_key.txt').text
+
+    project {
+        id = project_id
+        changelog = file('changelog.md')
+        changelogType = 'markdown'
+        releaseType = curse_type
+        addGameVersion mc_version
+        mainArtifact(jar) {
+            displayName = "${project.name}-${project.version}"
+        }
+    }
+}
