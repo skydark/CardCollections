@@ -14,7 +14,7 @@
   "tooltip.card_collections.collection_book": "Right click to show gui, sneak right click to collect cards in inventory",
   "tooltip.card_collections.collection_book.invalid": "Invalid collection book",
   "tooltip.card_collections.collection_book.mcmobs_encyclopedia": "Minecraft Mobs Encyclopedia",
-  "tooltip.card_collections.collection_book.mcmobs_encyclopedia.desc": "Right click mod to get card",
+  "tooltip.card_collections.collection_book.mcmobs_encyclopedia.desc": "Right click mobs to get card",
   "tooltip.card_collections.gacha": "Right click to get a random card, sneak right click to get collection book",
   "gui.card_collections.button.pop": "Pop",
   "gui.card_collections.text.name": "Name",
