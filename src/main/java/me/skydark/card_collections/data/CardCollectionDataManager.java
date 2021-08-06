@@ -57,7 +57,7 @@ public class CardCollectionDataManager extends JsonReloadListener {
                 try {
                     CardData cardData = GSON.fromJson(element, CardData.class);
                     cards.put(rl, cardData);
-                    Mod.LOGGER.info("Loaded card data {}", rl);
+                    //Mod.LOGGER.info("Loaded card data {}", rl);
                 } catch (Exception exception) {
                     Mod.LOGGER.error("Couldn't parse card data {}", rl, exception);
                 }

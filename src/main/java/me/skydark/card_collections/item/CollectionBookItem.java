@@ -1,12 +1,16 @@
 package me.skydark.card_collections.item;
 
+import me.skydark.card_collections.Mod;
 import me.skydark.card_collections.client.CollectionBookGuiScreen;
 import me.skydark.card_collections.data.CardCollectionData;
 import me.skydark.card_collections.data.CardCollectionDataManager;
 import me.skydark.card_collections.data.CardData;
+import me.skydark.card_collections.init.ModConfiguration;
 import me.skydark.card_collections.init.ModItems;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.util.ITooltipFlag;
+import net.minecraft.entity.EntityType;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.item.Item;
@@ -33,11 +37,97 @@ public class CollectionBookItem extends Item
     @Override
     public void fillItemGroup(ItemGroup group, NonNullList<ItemStack> items) {
         if (this.isInGroup(group)) {
+            ItemStack encyclopedia = getMcMobsEncyclopedia();
+            if (!encyclopedia.isEmpty()) {
+                items.add(getMcMobsEncyclopedia());
+            }
             for(CardCollectionData collectionData: CardCollectionDataManager.INSTANCE.getCollections()) {
                 Map<String, Integer> dimFilters = new HashMap<>();
                 items.add(createFullStack(collectionData, dimFilters));
             }
         }
+    }
+
+    private static final String TAG_MCMOBs_ENCYCLOPEDIA = "special_collection_book";
+    private static final String TAG_VALUE_MCMOBs_ENCYCLOPEDIA = "mcmobs_encyclopedia";
+    private static final String TAG_MCMOBs_ENCYCLOPEDIA_COLLECTION_ID = "mcmobs";
+
+    public static ItemStack getMcMobsEncyclopedia() {
+        if (!ModConfiguration.SPAWN_MCMOBS_ENCYCLOPEDIA.get()) {
+            return ItemStack.EMPTY;
+        }
+        if (CardCollectionDataManager.INSTANCE.getCollection(TAG_MCMOBs_ENCYCLOPEDIA_COLLECTION_ID) == null) {
+            return ItemStack.EMPTY;
+        }
+        ItemStack encyclopedia = new ItemStack(ModItems.COLLECTION_BOOK.get());
+        CompoundNBT tag = encyclopedia.getOrCreateTag();
+        tag.putString("collection", TAG_MCMOBs_ENCYCLOPEDIA_COLLECTION_ID);
+        tag.putString(TAG_MCMOBs_ENCYCLOPEDIA, TAG_VALUE_MCMOBs_ENCYCLOPEDIA);
+        encyclopedia.setTag(tag);
+        return encyclopedia;
+    }
+
+    public static boolean isMcMobsEncyclopedia(ItemStack itemStack) {
+        if (itemStack.isEmpty() || itemStack.getItem() != ModItems.COLLECTION_BOOK.get() || itemStack.getTag() == null) return false;
+        String tagValue = itemStack.getTag().getString(TAG_MCMOBs_ENCYCLOPEDIA);
+        return TAG_VALUE_MCMOBs_ENCYCLOPEDIA.equals(tagValue);
+    }
+
+    //@Override
+    public ActionResultType itemInteractionForEntityX(ItemStack stack, PlayerEntity playerIn, LivingEntity target, Hand hand) {
+        if (!CollectionBookItem.isMcMobsEncyclopedia(stack)) {
+            return super.itemInteractionForEntity(stack, playerIn, target, hand);
+        }
+        if (playerIn.getEntityWorld().isRemote) {
+            return ActionResultType.SUCCESS;
+        }
+        String entityString = target.getEntityString();
+        Mod.LOGGER.debug("Seen entityS: {}", entityString);
+        EntityType<?> entitytype = target.getType();
+        ResourceLocation resourceLocation = EntityType.getKey(entitytype);
+        //ResourceLocation resourceLocation = EntityType.getKey(target.getType());
+        Mod.LOGGER.debug("Seen entity: {}", resourceLocation);
+        if (!"minecraft".equals(resourceLocation.getNamespace())) {
+            Mod.LOGGER.info("Not a vanilla entity: {}", resourceLocation);
+            playerIn.sendMessage(new TranslationTextComponent("chat.card_collections.collection_book.mcmobs_encyclopedia.failed",
+                            new TranslationTextComponent(resourceLocation.toString())),
+                    Util.DUMMY_UUID);
+            return ActionResultType.SUCCESS;
+        }
+        CardCollectionData mcmobs = CardCollectionDataManager.INSTANCE.getCollection("mcmobs");
+        if (mcmobs == null) {
+            Mod.LOGGER.warn("Card collection mcmobs is not loaded");
+            playerIn.sendMessage(new TranslationTextComponent("chat.card_collections.collection_book.mcmobs_encyclopedia.failed",
+                            new TranslationTextComponent(resourceLocation.toString())),
+                    Util.DUMMY_UUID);
+            return ActionResultType.SUCCESS;
+        }
+        String cardId = resourceLocation.getPath();
+        // special cases:
+        if (target.isChild() && ("piglin".equals(cardId) || "polar_bear".equals(cardId))) {
+            cardId = cardId + "_baby";
+        }
+
+        CardData cardData = mcmobs.getCard(cardId);
+        if (cardData == null) {
+            Mod.LOGGER.warn("Unknown entity: {}", resourceLocation);
+            playerIn.sendMessage(new TranslationTextComponent("chat.card_collections.collection_book.mcmobs_encyclopedia.failed",
+                            new TranslationTextComponent(resourceLocation.toString())),
+                    Util.DUMMY_UUID);
+            return ActionResultType.SUCCESS;
+        }
+
+        //Mod.LOGGER.debug("Try to consume entity: {}", resourceLocation);
+        ItemStack mobCard = CardItem.createStack(cardData);
+        if (CollectionBookItem.addCard(stack, mobCard)) {
+            playerIn.setHeldItem(hand, stack.copy());
+            playerIn.sendMessage(new TranslationTextComponent("chat.card_collections.collection_book.mcmobs_encyclopedia.consumed",
+                            new TranslationTextComponent(mobCard.getTranslationKey())),
+                    Util.DUMMY_UUID);
+        } else {
+            playerIn.sendMessage(new TranslationTextComponent("chat.card_collections.collection_book.mcmobs_encyclopedia.duplicated"), Util.DUMMY_UUID);
+        }
+        return ActionResultType.SUCCESS;
     }
 
     private static ItemStack createFullStack(CardCollectionData collectionData, Map<String, Integer> dimFilters) {
@@ -135,19 +225,25 @@ public class CollectionBookItem extends Item
             return;
         }
 
+        if (isMcMobsEncyclopedia(stack)) {
+            tooltip.add(new TranslationTextComponent("tooltip.card_collections.collection_book.mcmobs_encyclopedia").mergeStyle(TextFormatting.RED));
+            tooltip.add(new TranslationTextComponent("tooltip.card_collections.collection_book.mcmobs_encyclopedia.desc").mergeStyle(TextFormatting.BLUE));
+        }
+
         CompoundNBT compoundNBT = stack.getTag();
         if (compoundNBT == null) {
             compoundNBT = new CompoundNBT();
         }
+
+        Map<String, Integer> dimFilters = collectionData.readDimFilters(stack);
         // get string list
         ListNBT cardListNBT = compoundNBT.getList("cards", 8);
         tooltip.add(new TranslationTextComponent(collectionData.getTranslationKeyOfName())
                 .mergeStyle(TextFormatting.ITALIC)
-                .appendString(": " + cardListNBT.size()));
+                .appendString(": " + cardListNBT.size() + " / " + collectionData.getValidCards(dimFilters).size()));
 
         tooltip.add(new TranslationTextComponent("tooltip.card_collections.collection_book").mergeStyle(TextFormatting.BLUE));
 
-        Map<String, Integer> dimFilters = collectionData.readDimFilters(stack);
         SortedSet<String> keys = new TreeSet<>(dimFilters.keySet());
         for (String dimKey : keys) {
             Integer value = dimFilters.get(dimKey);

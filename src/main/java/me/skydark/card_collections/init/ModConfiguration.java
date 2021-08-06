@@ -18,6 +18,7 @@ public class ModConfiguration {
     public static ForgeConfigSpec.ConfigValue<List<? extends String>> COLLECTION_WHITELIST;
     public static ForgeConfigSpec.ConfigValue<List<? extends String>> COLLECTION_BLACKLIST;
     public static ForgeConfigSpec.BooleanValue GACHA_TO_BOOK;
+    public static ForgeConfigSpec.BooleanValue SPAWN_MCMOBS_ENCYCLOPEDIA;
 
     static {
         ForgeConfigSpec.Builder COMMON_BUILDER = new ForgeConfigSpec.Builder();
@@ -31,7 +32,10 @@ public class ModConfiguration {
                 .defineList("collectionBlacklist", new ArrayList<>(), o -> o instanceof String);
         GACHA_TO_BOOK = COMMON_BUILDER
                 .comment("Allow shift-right click to convert gacha to collection book")
-                        .define("gachaToBook", true);
+                .define("gachaToBook", true);
+        SPAWN_MCMOBS_ENCYCLOPEDIA = COMMON_BUILDER
+                .comment("Spawn a special encyclopedia to collect cards when right click mobs, required mcmobs collection enabled")
+                .define("spawnMcMobsEncyclopedia", true);
         COMMON_BUILDER.pop();
 
         COMMON_CONFIG = COMMON_BUILDER.build();

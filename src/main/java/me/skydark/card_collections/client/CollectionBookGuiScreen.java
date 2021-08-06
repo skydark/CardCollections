@@ -301,7 +301,7 @@ public class CollectionBookGuiScreen extends Screen {
             super.setSelected(entry);
             if (entry != null) {
                 NarratorChatListener.INSTANCE.say((new TranslationTextComponent("narrator.select", entry.cardData.getCardId())).getString());
-                Mod.LOGGER.debug("Selected {}", entry.cardData.getResourceLocation());
+                //Mod.LOGGER.debug("Selected {}", entry.cardData.getResourceLocation());
                 CollectionBookGuiScreen.this.setSelected(entry.cardData);
             }
         }

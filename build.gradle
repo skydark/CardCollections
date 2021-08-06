@@ -152,7 +152,7 @@ def getGitVersion() {
     def outStream = new ByteArrayOutputStream()
     def result = exec {
         executable = 'git'
-        args = ['describe', '--long']
+        args = ['describe', '--long', '--tags']
         standardOutput = outStream
     }
 

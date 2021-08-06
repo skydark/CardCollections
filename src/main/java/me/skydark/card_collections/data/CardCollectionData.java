@@ -34,7 +34,7 @@ public class CardCollectionData {
     public String getId() { return id; }
 
     public void registerCard(ResourceLocation rl, CardData card) {
-        Mod.LOGGER.info("Registering card {} into collection {}", rl, id);
+        //Mod.LOGGER.info("Registering card {} into collection {}", rl, id);
         if (cards == null) {
             cards = new HashMap<>();
         }
