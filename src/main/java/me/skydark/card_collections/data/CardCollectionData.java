@@ -62,8 +62,17 @@ public class CardCollectionData {
         if (validCards.isEmpty()) {
             return null;
         }
+        TreeMap<Integer, CardData> weightedValidCards = new TreeMap<>();
+        int totalWeight = 0;
+        for (CardData card : validCards) {
+            if (card.weight > 0) {
+                totalWeight += card.weight;
+                weightedValidCards.put(totalWeight, card);
+            }
+        }
+        if (weightedValidCards.isEmpty()) return null;
         Random rand = new Random();
-        return validCards.get(rand.nextInt(validCards.size()));
+        return weightedValidCards.ceilingEntry(rand.nextInt(totalWeight) + 1).getValue();
     }
 
     public int getColor(CardData cardData) {

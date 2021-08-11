@@ -7,6 +7,7 @@ import java.util.Objects;
 
 public class CardData {
     public Map<String, Integer> dimensions;
+    public int weight = 1;
 
     private ResourceLocation resourceLocation;
 
