@@ -207,6 +207,11 @@ public class CollectionBookGuiScreen extends Screen {
         }
         this.minecraft.getTextureManager().bindTexture(GUI_BACKGROUND);
         blit(matrixStack, GUI_LEFT, GUI_TOP, this.getBlitOffset(), 0, 0, GUI_WIDTH, GUI_HEIGHT, GUI_HEIGHT, GUI_WIDTH);
+        // draw card
+        this.minecraft.getTextureManager().bindTexture(this.activeCard != null ? this.activeCard.getTexture() : GUI_MISSING);
+        blit(matrixStack, GUI_LEFT + GUI_WIDTH - GUI_CARD_SIZE + GUI_CARD_BORDER, GUI_TOP + GUI_CARD_BORDER, this.getBlitOffset(), 0, 0,
+                GUI_CARD_SIZE - GUI_CARD_BORDER * 2, GUI_CARD_SIZE - GUI_CARD_BORDER * 2,
+                GUI_CARD_SIZE - GUI_CARD_BORDER * 2, GUI_CARD_SIZE - GUI_CARD_BORDER * 2);
         // draw card list panel, TODO: search
         this.cardList.render(matrixStack, 0, 0, 0);
         // draw dimension panel texts, sort buttons done in init
@@ -224,11 +229,6 @@ public class CollectionBookGuiScreen extends Screen {
                 }
             }
         }
-        // draw card
-        this.minecraft.getTextureManager().bindTexture(this.activeCard != null ? this.activeCard.getTexture() : GUI_MISSING);
-        blit(matrixStack, GUI_LEFT + GUI_WIDTH - GUI_CARD_SIZE + GUI_CARD_BORDER, GUI_TOP + GUI_CARD_BORDER, this.getBlitOffset(), 0, 0,
-                GUI_CARD_SIZE - GUI_CARD_BORDER * 2, GUI_CARD_SIZE - GUI_CARD_BORDER * 2,
-                GUI_CARD_SIZE - GUI_CARD_BORDER * 2, GUI_CARD_SIZE - GUI_CARD_BORDER * 2);
         // draw desc
         if (this.collectionData == null || this.activeCard == null) {
             this.font.func_238418_a_(new TranslationTextComponent("gui.card_collections.text.no_active_card"),
@@ -365,6 +365,11 @@ public class CollectionBookGuiScreen extends Screen {
             addVertex(bufferbuilder, x0, y1 - shadow, 0.0D, 0.0F, 0.0F, 0, 0, 0, 0);
 
             tessellator.draw();
+
+            RenderSystem.enableTexture();
+            RenderSystem.shadeModel(7424);
+            RenderSystem.enableAlphaTest();
+            RenderSystem.disableBlend();
         }
 
         private void addVertex(BufferBuilder bufferbuilder, double x, double y, double z, float u, float v, int r, int g, int b, int a) {
