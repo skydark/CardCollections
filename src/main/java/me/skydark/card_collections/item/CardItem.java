@@ -1,6 +1,6 @@
 package me.skydark.card_collections.item;
 
-import me.skydark.card_collections.client.CardGuiScreen;
+import me.skydark.card_collections.Mod;
 import me.skydark.card_collections.data.CardCollectionData;
 import me.skydark.card_collections.data.CardCollectionDataManager;
 import me.skydark.card_collections.data.CardData;
@@ -73,7 +73,7 @@ public class CardItem extends Item
         if (world.isRemote){
             CardData cardData = getCard(stack);
             if (cardData != null) {
-                CardGuiScreen.open(cardData);
+                Mod.proxy.openCardGui(cardData);
             }
         }
         return ActionResult.resultSuccess(stack);

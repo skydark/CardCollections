@@ -6,14 +6,17 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import me.skydark.card_collections.Mod;
 import me.skydark.card_collections.init.ModConfiguration;
+import me.skydark.card_collections.init.ModMessages;
+import me.skydark.card_collections.network.SSyncCardCollectionData;
 import net.minecraft.client.resources.JsonReloadListener;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.profiler.IProfiler;
 import net.minecraft.resources.IResourceManager;
 import net.minecraft.util.ResourceLocation;
 
 import javax.annotation.Nullable;
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class CardCollectionDataManager extends JsonReloadListener {
     private static final Gson GSON = (new GsonBuilder())
@@ -29,13 +32,25 @@ public class CardCollectionDataManager extends JsonReloadListener {
         super(GSON, name);
     }
 
+    public void syncToClient(PlayerEntity player)
+    {
+        if(player.isServerWorld() && player instanceof ServerPlayerEntity) {
+            ServerPlayerEntity serverPlayer = (ServerPlayerEntity) player;
+            ModMessages.sendToClient(new SSyncCardCollectionData(collections), serverPlayer);
+        }
+    }
+
+    public void setCollections(Map<String, CardCollectionData> collections) {
+        this.collections = collections;
+    }
+
     @Override
     protected void apply(Map<ResourceLocation, JsonElement> objectIn, IResourceManager resourceManagerIn, IProfiler profilerIn) {
         Mod.LOGGER.info("Reloading card collections ...");
         Map<String, CardCollectionData> collections = new HashMap<>();
         Map<ResourceLocation, CardData> cards = new HashMap<>();
-        Set<String> collectionWhitelist = ModConfiguration.COLLECTION_WHITELIST.get().stream().collect(Collectors.toSet());
-        Set<String> collectionBlacklist = ModConfiguration.COLLECTION_BLACKLIST.get().stream().collect(Collectors.toSet());
+        Set<String> collectionWhitelist = new HashSet<>(ModConfiguration.COLLECTION_WHITELIST.get());
+        Set<String> collectionBlacklist = new HashSet<>(ModConfiguration.COLLECTION_BLACKLIST.get());
         objectIn.forEach((rl, element) -> {
             if (COLLECTION_PATH.equalsIgnoreCase(rl.getPath())) {
                 // this is collection definition json

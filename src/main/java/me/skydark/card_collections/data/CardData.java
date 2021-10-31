@@ -1,5 +1,7 @@
 package me.skydark.card_collections.data;
 
+import com.google.common.collect.ImmutableMap;
+import net.minecraft.network.PacketBuffer;
 import net.minecraft.util.ResourceLocation;
 
 import java.util.Map;
@@ -52,5 +54,32 @@ public class CardData {
     }
     public String getTranslationKeyOfDesc() {
         return String.format("card.%s.%s.desc", getCollectionId(), getCardId());
+    }
+
+    public void writeToBuffer(PacketBuffer buf) {
+        buf.writeResourceLocation(resourceLocation);
+        if (dimensions == null) {
+            buf.writeInt(0);
+            return;
+        }
+        buf.writeInt(dimensions.size());
+        dimensions.forEach((dim, val) -> {
+            buf.writeString(dim);
+            buf.writeInt(val);
+        });
+    }
+
+    public static CardData readFromBuffer(PacketBuffer buf) {
+        CardData card = new CardData();
+        card.setResourceLocation(buf.readResourceLocation());
+        ImmutableMap.Builder<String, Integer> builder = ImmutableMap.builder();
+        int size = buf.readInt();
+        for (int i=0; i<size; i++) {
+            String key = buf.readString(32767);
+            Integer value = buf.readInt();
+            builder.put(key, value);
+        }
+        card.dimensions = builder.build();
+        return card;
     }
 }

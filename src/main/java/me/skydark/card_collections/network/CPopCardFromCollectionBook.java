@@ -26,7 +26,7 @@ public class CPopCardFromCollectionBook implements IMessagePacket {
 
     public CPopCardFromCollectionBook(PacketBuffer buf) {
         this.slot = buf.readInt();
-        this.cardId = buf.readString();
+        this.cardId = buf.readString(32767);
     }
 
     @Override

@@ -3,7 +3,6 @@ import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.systems.RenderSystem;
 import me.skydark.card_collections.Mod;
 import me.skydark.card_collections.data.CardData;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.*;
@@ -16,7 +15,7 @@ public class CardGuiScreen extends Screen {
     private CardData cardData;
     private ResourceLocation cardTexture;
 
-    protected CardGuiScreen(CardData cardData) {
+    public CardGuiScreen(CardData cardData) {
         super(StringTextComponent.EMPTY);
         this.cardData = cardData;
         this.cardTexture = cardData.getTexture();
@@ -55,9 +54,5 @@ public class CardGuiScreen extends Screen {
         text.appendString("\n\n").appendSibling(new TranslationTextComponent(String.format("card.%s.%s.desc", collectionId, cardData.getCardId())));
         this.font.func_238418_a_(text, GUI_LEFT + GUI_CARD_SIZE + 4, GUI_TOP + 4, GUI_WIDTH - GUI_CARD_SIZE - 8, 0);
         super.render(matrixStack, mouseX, mouseY, partialTicks);
-    }
-
-    public static void open(CardData cardData) {
-        Minecraft.getInstance().displayGuiScreen(new CardGuiScreen(cardData));
     }
 }

@@ -3,6 +3,7 @@ package me.skydark.card_collections.init;
 import me.skydark.card_collections.Mod;
 import me.skydark.card_collections.network.CPopCardFromCollectionBook;
 import me.skydark.card_collections.network.IMessagePacket;
+import me.skydark.card_collections.network.SSyncCardCollectionData;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.util.ResourceLocation;
@@ -22,6 +23,7 @@ public class ModMessages {
                 c -> true,
                 s -> true);
         register(CPopCardFromCollectionBook.class, CPopCardFromCollectionBook::new);
+        register(SSyncCardCollectionData.class, SSyncCardCollectionData::new);
     }
 
     private static <T extends IMessagePacket> void register(Class<T> packetClass, Function<PacketBuffer, T> packetToMessage)

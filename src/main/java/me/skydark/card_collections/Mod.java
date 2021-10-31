@@ -1,20 +1,19 @@
 package me.skydark.card_collections;
 
 import me.skydark.card_collections.data.CardCollectionDataManager;
-import me.skydark.card_collections.entity.CardEntityRender;
 import me.skydark.card_collections.init.*;
-import me.skydark.card_collections.item.CardItem;
-import net.minecraft.block.Blocks;
+import me.skydark.card_collections.proxy.ClientProxy;
+import me.skydark.card_collections.proxy.IProxy;
+import me.skydark.card_collections.proxy.ServerProxy;
 import net.minecraft.item.ItemGroup;
 import net.minecraft.item.ItemStack;
-import net.minecraftforge.client.event.ColorHandlerEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.AddReloadListenerEvent;
+import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
+import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.fml.ModLoadingContext;
-import net.minecraftforge.fml.client.registry.RenderingRegistry;
 import net.minecraftforge.fml.config.ModConfig;
-import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import org.apache.logging.log4j.LogManager;
@@ -26,6 +25,7 @@ public class Mod
 {
     public static final String MOD_ID = "card_collections";
     public static final Logger LOGGER = LogManager.getLogger(MOD_ID);
+    public static IProxy proxy = DistExecutor.safeRunForDist(() -> ClientProxy::new, () -> ServerProxy::new);
 
     public Mod()
     {
@@ -36,10 +36,10 @@ public class Mod
         ModEntities.ENTITY_TYPES.register(modEventBus);
 
         modEventBus.addListener(this::setup);
-        modEventBus.addListener(this::doClientStuff);
-        modEventBus.addListener(this::registerItemColors);
+        FMLJavaModLoadingContext.get().getModEventBus().addListener(ModClient::init);
 
         MinecraftForge.EVENT_BUS.addListener(this::onAddReloadListener);
+        MinecraftForge.EVENT_BUS.addListener(this::onPlayerLoggedIn);
         MinecraftForge.EVENT_BUS.register(this);
     }
 
@@ -49,14 +49,8 @@ public class Mod
         ModMessages.register();
     }
 
-    private void doClientStuff(final FMLClientSetupEvent event) {
-        LOGGER.info("Registering client side stuff");
-        RenderingRegistry.registerEntityRenderingHandler(ModEntities.CARD.get(), CardEntityRender::new);
-    }
-
-    private void registerItemColors(ColorHandlerEvent.Item event) {
-        LOGGER.info("Registering item colors");
-        event.getItemColors().register(CardItem::getItemColor, ModItems.CARD.get());
+    private void onPlayerLoggedIn(PlayerEvent.PlayerLoggedInEvent event) {
+        CardCollectionDataManager.INSTANCE.syncToClient(event.getPlayer());
     }
 
     private void onAddReloadListener(final AddReloadListenerEvent event) {

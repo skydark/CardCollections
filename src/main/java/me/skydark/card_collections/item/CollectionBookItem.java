@@ -1,13 +1,11 @@
 package me.skydark.card_collections.item;
 
 import me.skydark.card_collections.Mod;
-import me.skydark.card_collections.client.CollectionBookGuiScreen;
 import me.skydark.card_collections.data.CardCollectionData;
 import me.skydark.card_collections.data.CardCollectionDataManager;
 import me.skydark.card_collections.data.CardData;
 import me.skydark.card_collections.init.ModConfiguration;
 import me.skydark.card_collections.init.ModItems;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.LivingEntity;
@@ -188,7 +186,7 @@ public class CollectionBookItem extends Item
             playerIn.playSound(SoundEvents.ITEM_BOOK_PAGE_TURN, 1.0F, 1.0F);
             if (worldIn.isRemote) {
                 if (handStack.getItem() == ModItems.COLLECTION_BOOK.get()) {
-                    Minecraft.getInstance().displayGuiScreen(new CollectionBookGuiScreen(playerIn, handStack, handIn));
+                    Mod.proxy.openCollectionBookGui(playerIn, handStack, handIn);
                 }
             }
             //playerIn.addStat(Stats.ITEM_USED.get(this));

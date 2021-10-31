@@ -4,7 +4,6 @@ import me.skydark.card_collections.Mod;
 import me.skydark.card_collections.data.CardCollectionDataManager;
 import me.skydark.card_collections.data.CardData;
 import me.skydark.card_collections.init.ModEntities;
-import me.skydark.card_collections.init.ModItems;
 import me.skydark.card_collections.item.CardItem;
 import me.skydark.card_collections.network.SSpawnCardPacket;
 import net.minecraft.entity.Entity;

@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableMap;
 import me.skydark.card_collections.Mod;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.network.PacketBuffer;
 import net.minecraft.util.ResourceLocation;
 
 import javax.annotation.Nullable;
@@ -158,5 +159,44 @@ public class CardCollectionData {
 
     public String getTranslationKeyOfName() {
         return String.format("card_collections.%s.name", getId());
+    }
+
+    public void writeToBuffer(PacketBuffer buf) {
+        buf.writeString(id);
+        buf.writeString(color_filter);
+        buf.writeVarIntArray(colors);
+
+        buf.writeInt(dimensions.size());
+        dimensions.forEach((dim, val) -> {
+            buf.writeString(dim);
+            buf.writeInt(val);
+        });
+
+        buf.writeInt(cards.size());
+        cards.forEach((rl, card) -> {
+            card.writeToBuffer(buf);
+        });
+    }
+
+    public static CardCollectionData readFromBuffer(PacketBuffer buf) {
+        CardCollectionData collection = new CardCollectionData();
+        collection.init(buf.readString());
+        collection.color_filter = buf.readString(32767);
+        collection.colors = buf.readVarIntArray();
+
+        ImmutableMap.Builder<String, Integer> builder = ImmutableMap.builder();
+        int size = buf.readInt();
+        for (int i=0; i<size; i++) {
+            String key = buf.readString(32767);
+            Integer value = buf.readInt();
+            builder.put(key, value);
+        }
+        collection.dimensions = builder.build();
+
+        for (int i = buf.readInt(); i > 0; i--) {
+            CardData card = CardData.readFromBuffer(buf);
+            collection.registerCard(card.getResourceLocation(), card);
+        }
+        return collection;
     }
 }
