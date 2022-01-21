@@ -5,7 +5,6 @@ import me.skydark.card_collections.data.CardCollectionDataManager;
 import me.skydark.card_collections.data.CardData;
 import me.skydark.card_collections.init.ModEntities;
 import me.skydark.card_collections.item.CardItem;
-import me.skydark.card_collections.network.SSpawnCardPacket;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.item.HangingEntity;
@@ -13,16 +12,20 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.network.IPacket;
+import net.minecraft.network.PacketBuffer;
 import net.minecraft.util.*;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.GameRules;
 import net.minecraft.world.World;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraftforge.fml.common.registry.IEntityAdditionalSpawnData;
+import net.minecraftforge.fml.network.FMLPlayMessages;
+import net.minecraftforge.fml.network.NetworkHooks;
 
 import javax.annotation.Nullable;
 
-public class CardEntity extends HangingEntity {
+public class CardEntity extends HangingEntity implements IEntityAdditionalSpawnData {
     public ResourceLocation card;
     public CardEntity(EntityType<? extends CardEntity> type, World worldIn) {
         super(type, worldIn);
@@ -36,6 +39,16 @@ public class CardEntity extends HangingEntity {
         super(ModEntities.CARD.get(), world, hangingPos);
         this.card = card;
         this.updateFacingWithBoundingBox(direction);
+    }
+
+    public CardEntity(FMLPlayMessages.SpawnEntity spawnEntity, World world) {
+        super(ModEntities.CARD.get(), world);
+
+        /*
+        this(worldIn, spawnEntity.getAdditionalData().readBlockPos(),
+                Direction.byHorizontalIndex(spawnEntity.getAdditionalData().readByte()),
+                spawnEntity.getAdditionalData().readResourceLocation());
+         */
     }
 
     public void writeAdditional(CompoundNBT compound) {
@@ -93,8 +106,23 @@ public class CardEntity extends HangingEntity {
         this.setPosition((double)blockpos.getX(), (double)blockpos.getY(), (double)blockpos.getZ());
     }
 
+    @Override
     public IPacket<?> createSpawnPacket() {
-//        return new SSpawnPaintingPacket(this);
-        return new SSpawnCardPacket(this);
+        return NetworkHooks.getEntitySpawningPacket(this);
+    }
+
+    @Override
+    public void writeSpawnData(PacketBuffer buffer) {
+        buffer.writeBlockPos(this.getHangingPosition());
+        buffer.writeByte((byte)this.getHorizontalFacing().getHorizontalIndex());
+        buffer.writeResourceLocation(this.card);
+    }
+
+    @Override
+    public void readSpawnData(PacketBuffer additionalData) {
+        this.hangingPosition = additionalData.readBlockPos();
+        this.facingDirection = Direction.byHorizontalIndex(additionalData.readByte());
+        this.card = additionalData.readResourceLocation();
+        this.updateFacingWithBoundingBox(this.facingDirection);
     }
 }
